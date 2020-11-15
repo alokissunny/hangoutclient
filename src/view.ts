@@ -7,6 +7,8 @@ import {  IDiceRoller } from "./dataObject";
 
 var canvas = document.getElementById('the-canvas') as any;
 var infoPanel = document.getElementById('info') as any;
+var myInfo = document.getElementById('myInfo') as any;
+var roomId = document.getElementById('roomId') as any;
 
 window.addEventListener('keydown',check,false);
 window.addEventListener('keyup',reset,false);
@@ -48,7 +50,8 @@ var avtars = [];
 var obj = {
     x: 100,
     y: 100,
-    me:''
+    me:'',
+    roomId : ''
 };
 
 var cords = [];
@@ -58,7 +61,7 @@ let nearMe = [];
 cords.forEach(cord => {
     let dist = Math.sqrt(Math.pow(cord.x-meObj.x,2) + Math.pow(cord.y-meObj.y,2));
     if(dist < limit && cord.avtar !== meObj.me)
-        nearMe.push(cord.avtar);
+        nearMe.push(cord);
 });
 return nearMe;
 }
@@ -74,16 +77,18 @@ var draw = function (ctx, avtars , diceRoller , meObj) {
     ctx.fillStyle = clr;
     let x1 = avtar === me ? meObj.x : (diceRoller as any).root.get(avtar).x;
     let y1 = avtar === me ? meObj.y :(diceRoller as any).root.get(avtar).y;
+    let roomId = avtar === me ? meObj.roomId :(diceRoller as any).root.get(avtar).roomId;
     ctx.fillRect(x1, y1, 10, 10);
     ctx.fill();
     cords.push({
         avtar : avtar,
         x: x1,
-        y:y1
+        y:y1,
+        roomId: roomId
     });
 });
-// console.log('Near me '+ myProxity(meObj));
-infoPanel.innerText = ('Near '+ myProxity(meObj))};
+}
+
 
 /**
  * Render an IDiceRoller into a given div as a text character, with a button to roll it.
@@ -119,33 +124,24 @@ export function renderDiceRoller(diceRoller: IDiceRoller, div: HTMLDivElement) {
     //   (diceRoller as any).root.set((diceRoller as any).getName(), obj);
         // draw object
         draw(ctx, avtars, diceRoller , obj);
-         diceRoller.move(obj.x,obj.y);
-    }
+         let nearMe = myProxity(obj);
+        if(nearMe.length >0) {
+        infoPanel.innerText = ('Near '+ nearMe);
+        obj.roomId = nearMe[0].roomId;
+        diceRoller.move(obj.x,obj.y,obj.roomId);
+     } else {
+        obj.roomId = obj.me;
+        infoPanel.innerText = ('near no one ');
+        diceRoller.move(obj.x,obj.y, obj.roomId)
+     }
+     myInfo.innerText = 'my avtar Id is '+obj.me;
+     roomId.innerText = 'my room Id is '+obj.roomId;
+        }
     loop();
-    // const diceCharDiv = document.createElement("div");
-    // diceCharDiv.style.fontSize = "200px";
-
-    // const rollButton = document.createElement("button");
-    // rollButton.style.fontSize = "50px";
-    // rollButton.textContent = "Roll";
-    // // Call the roll method to modify the shared data when the button is clicked.
-    // rollButton.addEventListener("click", diceRoller.roll);
-
-    // wrapperDiv.append(diceCharDiv, rollButton);
-
-    // Get the current value of the shared data to update the view whenever it changes.
-    // const updateDiceChar = () => {
-    //     // Unicode 0x2680-0x2685 are the sides of a dice (⚀⚁⚂⚃⚄⚅)
-    //     diceCharDiv.textContent = String.fromCodePoint(0x267F + diceRoller.value);
-    //     diceCharDiv.style.color = `hsl(${diceRoller.value * 60}, 70%, 50%)`;
-    // };
+    
     const updateCords = () => {
         obj.x = (diceRoller as any).getName().x;
         obj.y = diceRoller.coordinates.y;
     }
-    // updateDiceChar();
-
-    // Use the diceRolled event to trigger the rerender whenever the value changes.
-    // diceRoller.on("diceRolled", updateDiceChar);
     diceRoller.on("newCords", updateCords);
 }

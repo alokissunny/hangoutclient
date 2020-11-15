@@ -25,7 +25,7 @@ export interface IDiceRoller extends EventEmitter {
      * Roll the dice.  Will cause a "diceRolled" event to be emitted.
      */
     roll: () => void;
-    move: (x:Number , y:Number) => void;
+    move: (x:Number , y:Number , roomId?:string) => void;
 
     /**
      * The diceRolled event will fire whenever someone rolls the device, either locally or remotely.
@@ -49,6 +49,7 @@ export class DiceRoller extends DataObject implements IDiceRoller {
      */
      name : string  ='';
      color : string = '';
+     roomId: string = '';
     protected async initializingFirstTime() {
         // this.root.set(diceValueKey, 2);
        
@@ -84,6 +85,7 @@ export class DiceRoller extends DataObject implements IDiceRoller {
     protected async hasInitialized() {
         let key = this.getRandomString(5);
         this.name = key;
+        this.roomId = key;
         this.color = this.getRandomColor();
         let obj = {};
         obj =  {
@@ -96,11 +98,6 @@ export class DiceRoller extends DataObject implements IDiceRoller {
             obj
         );
         this.root.on("valueChanged", (changed: IValueChanged) => {
-            // if (changed.key === diceValueKey) {
-            //     // When we see the dice value change, we'll emit the diceRolled event we specified in our interface.
-            //     this.emit("diceRolled");
-            // }
-            // if(changed.key === coordinates ){
                 console.log('coordinates changed');
                 for(let item of this.root.keys()) {
                     console.log('########')
@@ -109,8 +106,6 @@ export class DiceRoller extends DataObject implements IDiceRoller {
                     console.log(this.root.get(item)['y']);
                     console.log('########');
                 }
-                //  this.emit("newCords");
-            // }
         });
     }
     public getName() {
@@ -130,12 +125,13 @@ export class DiceRoller extends DataObject implements IDiceRoller {
         // const rollValue = Math.floor(Math.random() * 6) + 1;
         // this.root.set(diceValueKey, rollValue);
     };
-    public readonly move = (xCor,yCor) => {
+    public readonly move = (xCor,yCor,roomId = this.roomId) => {
         if(xCor > 0 && yCor >0)
         this.root.set(this.name , {
             x: xCor,
             y: yCor,
-            color: this.color
+            color: this.color,
+            roomId : roomId
         })
     }
 }
