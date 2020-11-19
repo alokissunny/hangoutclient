@@ -9,7 +9,10 @@ var canvas = document.getElementById('the-canvas') as any;
 var infoPanel = document.getElementById('info') as any;
 var myInfo = document.getElementById('myInfo') as any;
 var roomId = document.getElementById('roomId') as any;
+const videoGrid = document.getElementById('video-grid')
 
+const myVideo = document.createElement('video')
+myVideo.muted = true
 window.addEventListener('keydown',check,false);
 window.addEventListener('keyup',reset,false);
 var deltaX = 0;
@@ -18,6 +21,19 @@ function reset(e){
     deltaX = 0;
     deltaY = 0; 
 }
+navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  }).then(stream => {
+    addVideoStream(myVideo, stream)
+  })
+  function addVideoStream(video, stream) {
+    video.srcObject = stream
+    video.addEventListener('loadedmetadata', () => {
+      video.play()
+    })
+    videoGrid.append(video)
+  }
 function check(e) {
     console.log(e.keyCode);
     switch(e.keyCode) {
